@@ -1,10 +1,10 @@
-import React, {useEffect, useState, useCallback} from 'react'
+import React, {useEffect, useState} from 'react'
 import axios from 'axios'
 import TwilioChat from 'twilio-chat'
+import Chat from './Chat'
 
 //Chat
 function Index() {
-
     const port = process.env.REACT_APP_BACKEND_PORT
     const url = 'http://localhost:'+port+'/token'+'/'
 
@@ -14,9 +14,8 @@ function Index() {
     const [channel, setChannel] = useState('General')
     const [newMessage, setNewMessage] = useState('')
     const [loggedIn, setLoggedIn] = useState(false)
-    const [client, setClient] = useState('')
 
-    const getToken = useCallback((identity) =>{
+    const getToken = (identity) =>{
         return new Promise((resolve, reject)=>{
             setMessages([...messages, {body: 'Connecting...'}])
 
@@ -27,10 +26,9 @@ function Index() {
                 resolve(token.data)
             }).catch(e => reject(e))
         })
-    },[url])
+    }
 
-
-    const onSubmit = e =>{
+    const onSubmitNewUser = e =>{
         setUsername(tempUsername)
         setLoggedIn(true)
         e.preventDefault()
@@ -38,9 +36,9 @@ function Index() {
 
     const handleTempNewUser = e => setTempUsername(e.target.value)
 
-    const addMessage = message =>{
-        const messageData = {...message, me: message.author === username}
-        setMessages([...messages, messageData])
+    const addMessage = msg =>{
+        const messageData = {...msg, me: msg.author === username}
+        setMessages(prevMessages => [...prevMessages, messageData])
     }
 
     const createChatClient = token =>{
@@ -60,20 +58,22 @@ function Index() {
     }
 
     const joinGeneralChannel = chatClient => {
-        
         return new Promise((resolve,reject)=>{
             chatClient.getSubscribedChannels().then(()=>{
                 chatClient.getChannelByUniqueName(channel).then((channel)=>{
-              
                     addMessage({body:'Joining channel...'})
                     setChannel(channel)
-                    
 
                     channel.join().then(()=>{
                         addMessage({body:'Joined general chat as '+username})
                         window.addEventListener('beforeunload', ()=>channel.leave())
-                    }).catch(()=> reject(Error('Could not join general channel.')))
-
+                    })
+                    .catch(()=> reject(Error('Could not join general channel.')))
+                    .then(()=>{
+                        channel.getMessages().then(messagesLoaded)
+                    })
+                    .catch(()=>console.log(Error('Messages were not loaded properly.')))
+                    
                     resolve(channel)
 
                 }).catch(()=>createGeneralChannel(chatClient))
@@ -99,10 +99,13 @@ function Index() {
         setNewMessage(e.target.value)
     }
 
-    const handleNewMessage = e =>{
+    const messagesLoaded = messagePage => {
+        setMessages(messagePage.items)
+    }
+
+    const onSubmitNewMessage = e =>{
         e.preventDefault()
         if(channel){
-            console.log(channel)
             channel.sendMessage(newMessage)
         }
         setNewMessage('')
@@ -114,8 +117,6 @@ function Index() {
             const chatClient = await createChatClient(token)
             const channel = await joinGeneralChannel(chatClient)
             await configureChannelEvents(channel)
-            setClient(chatClient)
-
         }
         catch(e)
         {
@@ -125,35 +126,17 @@ function Index() {
 
     useEffect(()=>{
         if(loggedIn)
-        mainAsync()
-
+            mainAsync()
        //return async function?
-    },[username, getToken])
+    },[loggedIn])
 
-    const renderChatForm = () =>{
-        return (<>
-            <form onSubmit={handleNewMessage}>
-                <input type="text" name="message" onChange={onMessageChange} value={newMessage}/>
-                <input type="submit" value="Send"/>
-            </form>
-        </>)
-    }
 
-    const renderChat = () =>{
-        return (<div>
-            <h3>Messages</h3>
-            <ul className = 'messages'>
-                {console.log(messages)}
-                {messages.map((m,i)=><li key={i}>{m.body}</li>)}
-            </ul>
-            {renderChatForm()}
-        </div>)
-    }
+ 
 
     const renderLoggin = () =>{
         return (
             <div>
-                <form onSubmit={onSubmit}>
+                <form onSubmit={onSubmitNewUser}>
                     <input type="text" name="username" onChange={handleTempNewUser} value={tempUsername}/>
                     <input type='submit' value='Submit'/>
                 </form>
@@ -161,9 +144,13 @@ function Index() {
         )
     }
 
-    return (!loggedIn ? (renderLoggin()) : (renderChat()))
+    return (!loggedIn ? (renderLoggin()) 
+    : <Chat 
+    messages={messages} 
+    onSubmitNewMessage={onSubmitNewMessage} 
+    onMessageChange={onMessageChange}
+    newMessage={newMessage} ></Chat>)
 
- 
 
 }
 

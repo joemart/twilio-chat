@@ -5,10 +5,19 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const Twilio = require('twilio')
+const path = require('path')
 
 
 const AccessToken = Twilio.jwt.AccessToken
 const ChatGrant = AccessToken.ChatGrant
+
+if(process.env.NODE_ENV == 'production')
+{
+  app.use(express.static(path.join(__dirname,'build')))
+  app.get('*',(req,res)=>{
+    res.sendFile(path.join(__dirname,'build','index.html'))
+  })
+}
 
 app.use(cors())
 
