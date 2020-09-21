@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "devStart":"nodemon index.js",
     "client": "npm run start --prefix ../my-frontend",
-    "dev": "concurrently \"npm run start\" \"npm run client\""
+    "dev": "concurrently \"npm run devStart\" \"npm run client\"",
+    "heroku-postbuild": "npm install --prefix ../my-frontend && npm run build --prefix ../my-frontend"
   },
   "keywords": [],
   "author": "",
