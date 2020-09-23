@@ -14,6 +14,7 @@ function Index() {
     const [channel, setChannel] = useState('General')
     const [newMessage, setNewMessage] = useState('')
     const [loggedIn, setLoggedIn] = useState(false)
+    const [client, setClient] = useState('')
 
     const getToken = (identity) =>{
         return new Promise((resolve, reject)=>{
@@ -117,6 +118,7 @@ function Index() {
             const chatClient = await createChatClient(token)
             const channel = await joinGeneralChannel(chatClient)
             await configureChannelEvents(channel)
+            setClient(chatClient)
         }
         catch(e)
         {
@@ -149,7 +151,8 @@ function Index() {
     messages={messages} 
     onSubmitNewMessage={onSubmitNewMessage} 
     onMessageChange={onMessageChange}
-    newMessage={newMessage} ></Chat>)
+    newMessage={newMessage}
+    chatClient={client} ></Chat>)
 
 
 }

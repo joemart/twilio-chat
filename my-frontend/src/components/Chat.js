@@ -24,6 +24,13 @@ function Chat({messages, onSubmitNewMessage, onMessageChange, newMessage}) {
             {renderChatForm()}
         </div>)
     }
+
+    //try and trigger event listener memberLeft
+    const logOut = () =>{
+        return (<div>
+            <form ></form>
+        </div>)
+    }
     
     return (
         <div>
