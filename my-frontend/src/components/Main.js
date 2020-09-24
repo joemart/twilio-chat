@@ -111,6 +111,17 @@ function Index() {
         setNewMessage('')
     }
 
+    const logOut = e =>{
+        e.preventDefault()
+        console.log('logged out')
+        setLoggedIn(false)
+        setUsername('')
+        setNewMessage('')
+        
+        client.shutdown()
+        setClient('')
+    }
+
     let mainAsync = async () => {
         try{
             const token = await getToken(username)
@@ -151,6 +162,7 @@ function Index() {
     onSubmitNewMessage={onSubmitNewMessage} 
     onMessageChange={onMessageChange}
     newMessage={newMessage}
+    logOut={logOut}
     chatClient={client} ></Chat>)
 
 
