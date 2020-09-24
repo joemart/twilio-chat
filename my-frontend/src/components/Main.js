@@ -92,7 +92,6 @@ function Index() {
         })
         channel.on('memberLeft', member =>{
             addMessage({body: `${member.identity} has left the channel`})
-            member.shutdown()
         })
     }
 
